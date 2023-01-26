@@ -1,19 +1,29 @@
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { Context } from '../App';
 import ModalWindow from '../components/ModalWindow';
 import TodoCard from '../components/TodoCard';
 import Button from '../components/UI/Button';
 import Input from '../components/UI/Input';
 
 const TodoPage = () => {
-  const [ todoList, setTodoList ] = useState([]) 
-  const [ value, setValue ] = useState('')
+  const [ todoList, setTodoList ] = useState(null) 
   const [ isShow, setIsShow ] = useState(false)
+
+  const { search, setSearch } = useContext(Context)
+  const [ sortBy, setSortBy ] = useState('abs') // abs || desc || letter
 
   const [ dataTask, setDataTask ] = useState({
     title: '',
     description: '',
   })
   
+  const closeWindow = () => {
+    setIsShow(prev => !prev)
+    setDataTask({
+      title: '',
+      description: '',
+    })
+  }
   const handleOnChange = (e) => {
     setDataTask(prev => {
       return {...prev, [ e.target.name ]: e.target.value}
@@ -28,7 +38,11 @@ const TodoPage = () => {
       return
     }
 
-    setTodoList(prev => [...prev, { id: Date(), title: todo.title, description: todo.description }])
+    const date = Date.now()
+
+    console.log(date)
+
+    setTodoList(prev => [...prev, { id: Date.now(), title: todo.title, description: todo.description }])
   }
 
   const editTodo = (todo) => {
@@ -49,23 +63,61 @@ const TodoPage = () => {
   }
 
   const openWindowToEdit = (todo) => {
-    console.log(todo)
     setDataTask(todo)
     setIsShow(true)
   }
 
+  useEffect(() => {
+    const data = localStorage.getItem('data')
+    setTodoList(JSON.parse(data) || [])
+  }, [])
+
+  useEffect(() => {
+    if (todoList === null) {
+      return
+    }
+    localStorage.setItem('data', JSON.stringify(todoList))
+  }, [ todoList ])
+
+  const SearchFunc = () => todoList?.filter((item) => item.title.includes(search))
+
+  const SortAndFilter = (arr) => {
+
+    switch (sortBy) {
+      case 'abs': {
+        return arr?.sort((a, b) => a.id - b.id)
+      }
+      case 'desc': {
+        return arr?.sort((a, b) => b.id - a .id)
+      }
+      case 'letter': {
+        return arr?.sort((a, b) => b.title - a .tite)
+      }
+      default: {
+        return arr
+      }
+    }
+  }
+
+  console.log(sortBy)
+  
   return (
     <>
       {isShow && (
-          <ModalWindow editTodo={editTodo} dataTask={dataTask} handleOnChange={handleOnChange} addTodo={addTodo} closeWindow={() => setIsShow(prev => !prev)}/>
+          <ModalWindow editTodo={editTodo} dataTask={dataTask} handleOnChange={handleOnChange} addTodo={addTodo} closeWindow={closeWindow}/>
       )}
       <div className='flexWrapper'>
-      <Input className='inputSearch' title={value} setValue={setValue}/>
+
+      <Button handleDo={() => setSortBy('asc')}>По возрастанию</Button>
+      <Button handleDo={() => setSortBy('desc')}>По убыванию</Button>
+      <Button handleDo={() => setSortBy('letter')}>По алфавиту</Button>
+
+      <Input className='inputSearch' value={search} handleOnChange={(e) => setSearch(e.target.value)}/>
       <Button handleDo={() => setIsShow(prev => !prev)}>
         Добавить таск
       </Button>
       <div className='listItems'>
-      {todoList.map((item, i) =>
+      {SortAndFilter(SearchFunc())?.map((item, i) =>
           <TodoCard key={i} openWindowToEdit={openWindowToEdit} todo={item} deleteTodo={deleteTodo}/>
       )}
       </div>
@@ -74,4 +126,4 @@ const TodoPage = () => {
   )
 } 
 
-export default TodoPage;
+export default TodoPage;  
