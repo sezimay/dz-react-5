@@ -42,7 +42,7 @@ const TodoPage = () => {
 
     console.log(date)
 
-    setTodoList(prev => [...prev, { id: Date.now(), title: todo.title, description: todo.description }])
+    setTodoList(prev => [...prev, { id: Date.now(), title: todo.title, description: todo.description,completed:false }])
   }
 
   const editTodo = (todo) => {
@@ -96,18 +96,30 @@ const TodoPage = () => {
       default: {
         return arr
       }
-    }
+    } 
   }
 
   console.log(sortBy)
-  
+  const ClearTodo  = ()=>{
+    console.log(todoList);
+    const newTodo = todoList.filter((a)=>{
+    if(a.completed == true){
+    
+    }
+    else{
+     return a 
+    }
+    })
+    setTodoList(newTodo)
+    
+    }
   return (
     <>
       {isShow && (
           <ModalWindow editTodo={editTodo} dataTask={dataTask} handleOnChange={handleOnChange} addTodo={addTodo} closeWindow={closeWindow}/>
       )}
       <div className='flexWrapper'>
-
+      <button type="reset" className='buttonAdd' onClick={ClearTodo}></button>
       <Button handleDo={() => setSortBy('asc')}>По возрастанию</Button>
       <Button handleDo={() => setSortBy('desc')}>По убыванию</Button>
       <Button handleDo={() => setSortBy('letter')}>По алфавиту</Button>
